@@ -17,6 +17,10 @@
         "skipTests": true,
         "flat": true
         }
-    }        
+    }
 },
 ```
+
+## Add ngxtension
+`npm install -D ngxtension-plugin`
+`ng g ngxtension-plugin:init`

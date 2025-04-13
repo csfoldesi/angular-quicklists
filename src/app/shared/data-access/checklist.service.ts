@@ -4,8 +4,8 @@ import {
   Checklist,
   EditChecklist,
 } from '../interfaces/checklist';
-import { Subject } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { map, merge, Subject } from 'rxjs';
+import { connect } from 'ngxtension/connect';
 import { StorageService } from './storage.service';
 import { ChecklistItemService } from '../../checklist/data-access/checklist-item.service';
 
@@ -37,47 +37,31 @@ export class ChecklistService {
   add$ = new Subject<AddChecklist>();
   remove$ = this.checklistItemService.checklistRemoved$;
   edit$ = new Subject<EditChecklist>();
+  private error$ = new Subject<string>();
 
   constructor() {
-    // reducers
-    this.add$.pipe(takeUntilDestroyed()).subscribe((checklist) =>
-      this.state.update((state) => ({
-        ...state,
+    const nextState$ = merge(
+      this.checklistsLoaded$.pipe(
+        map((checklists) => ({ checklists, loaded: true }))
+      ),
+      this.error$.pipe(map((error) => ({ error })))
+    );
+
+    connect(this.state)
+      .with(nextState$)
+      .with(this.add$, (state, checklist) => ({
         checklists: [...state.checklists, this.addIdToChecklist(checklist)],
       }))
-    );
-
-    this.remove$.pipe(takeUntilDestroyed()).subscribe((id) =>
-      this.state.update((state) => ({
-        ...state,
+      .with(this.remove$, (state, id) => ({
         checklists: state.checklists.filter((checklist) => checklist.id !== id),
       }))
-    );
-
-    this.edit$.pipe(takeUntilDestroyed()).subscribe((update) =>
-      this.state.update((state) => ({
-        ...state,
+      .with(this.edit$, (state, update) => ({
         checklists: state.checklists.map((checklist) =>
           checklist.id === update.id
             ? { ...checklist, title: update.data.title }
             : checklist
         ),
-      }))
-    );
-
-    this.checklistsLoaded$.pipe(takeUntilDestroyed()).subscribe({
-      next: (checklists) =>
-        this.state.update((state) => ({
-          ...state,
-          checklists,
-          loaded: true,
-        })),
-      error: (error) =>
-        this.state.update((state) => ({
-          ...state,
-          error: error,
-        })),
-    });
+      }));
 
     effect(() => {
       if (this.loaded()) {
