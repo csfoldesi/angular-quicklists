@@ -6,6 +6,13 @@ import { RouterModule } from '@angular/router';
   selector: 'app-checklist-header',
   standalone: true,
   imports: [RouterModule],
+  styles: [
+    `
+      button {
+        margin-left: 1rem;
+      }
+    `,
+  ],
   template: `
     <header>
       <a routerLink="/home">Back</a>

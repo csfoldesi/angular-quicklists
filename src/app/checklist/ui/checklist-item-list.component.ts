@@ -7,6 +7,27 @@ import {
 @Component({
   selector: 'app-checklist-item-list',
   standalone: true,
+  styles: [
+    `
+      ul {
+        padding: 0;
+        margin: 0;
+      }
+      li {
+        font-size: 1.5em;
+        display: flex;
+        justify-content: space-between;
+        background: var(--color-light);
+        list-style-type: none;
+        margin-bottom: 1rem;
+        padding: 1rem;
+
+        button {
+          margin-left: 1rem;
+        }
+      }
+    `,
+  ],
   template: `
     <section>
       <ul>
@@ -19,6 +40,8 @@ import {
             {{ item.title }}
             <div>
               <button (click)="toggle.emit(item.id)">Toggle</button>
+              <button (click)="remove.emit(item.id)">Remove</button>
+              <button (click)="edit.emit(item)">Edit</button>
             </div>
           </div>
         </li>
@@ -35,4 +58,6 @@ import {
 export class ChecklistItemListComponent {
   checklistItems = input.required<ChecklistItem[]>();
   toggle = output<RemoveChecklistItem>();
+  remove = output<RemoveChecklistItem>();
+  edit = output<ChecklistItem>();
 }
